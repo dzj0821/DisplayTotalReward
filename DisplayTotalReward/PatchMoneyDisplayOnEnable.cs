@@ -7,6 +7,7 @@ using HarmonyLib;
 using ItemStatsSystem;
 using Saves;
 using TMPro;
+using UnityEngine;
 
 namespace DisplayTotalReward
 {
@@ -77,13 +78,19 @@ namespace DisplayTotalReward
             {
                 return;
             }
-            // 在基地里不显示本局收益
-            totalRewardTextTransform.gameObject.SetActive(ModBehaviour.CurrentSceneName != "Base");
-            if (ModBehaviour.CurrentSceneName == "Base")
+            var isLootView = View.ActiveView is LootView;
+            totalRewardTextTransform.gameObject.SetActive(isLootView);
+            if (!isLootView)
             {
                 return;
             }
             var totalRewardText = totalRewardTextTransform.GetComponent<TextMeshProUGUI>();
+            if (ModBehaviour.CurrentSceneName == "Base")
+            {
+                // 在基地不动态刷新
+                Refresh();
+                return;
+            }
             
             void Refresh()
             {
@@ -91,13 +98,15 @@ namespace DisplayTotalReward
                 {
                     return;
                 }
-                int totalValue = 0;
-                if (ModBehaviour.CurrentSceneName != "Base")
+                Debug.Log("DisplayTotalReward PatchMoneyDisplayOnEnable Refresh");
+                if (ModBehaviour.CurrentSceneName == "Base")
                 {
-                    totalValue = (int)(ModBehaviour.PlayerTotalValue() - ModBehaviour.EnterLevelTotalValue);
+                    totalRewardText.text = ModBehaviour.GetTotalValueText((int)ModBehaviour.InventoryTotalValue());
                 }
-
-                totalRewardText.text = ModBehaviour.GetTotalRewardText(totalValue);
+                else
+                {
+                    totalRewardText.text = ModBehaviour.GetTotalRewardText((int)(ModBehaviour.PlayerTotalValue() - ModBehaviour.EnterLevelTotalValue));
+                }
             }
 
             Action<Item> onSetStackCount = item => {

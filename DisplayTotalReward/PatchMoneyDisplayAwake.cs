@@ -1,4 +1,3 @@
-using System.Reflection;
 using Duckov.UI;
 using HarmonyLib;
 using TMPro;
@@ -12,19 +11,37 @@ namespace DisplayTotalReward
     {
         public static void Prefix(MoneyDisplay __instance)
         {
-            var text = (TextMeshProUGUI) typeof(MoneyDisplay).GetField("text", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
-
-            void CreateSpace()
+            var moneyTransform = __instance.transform.Find("Money");
+            if (moneyTransform == null)
             {
-                GameObject space = new GameObject("Space");
-                space.AddComponent<LayoutElement>().preferredWidth = 10;
-                space.transform.SetParent(text.transform.parent);
+                return;
             }
 
-            CreateSpace();
+            var parent = moneyTransform.parent;
+            var totalReward = Object.Instantiate(moneyTransform.gameObject, parent);
+            totalReward.name = "TotalRewardText";
 
-            var totalRewardText = UnityEngine.Object.Instantiate(text, text.transform.parent);
-            totalRewardText.gameObject.name = "TotalRewardText";
+            for (var i = totalReward.transform.childCount - 1; i >= 0; i--)
+            {
+                var child = totalReward.transform.GetChild(i);
+                if (child.GetComponentInChildren<TextMeshProUGUI>(true) == null)
+                {
+                    Object.Destroy(child.gameObject);
+                }
+            }
+
+            var text = totalReward.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (text == null)
+            {
+                return;
+            }
+
+            var layoutElement = text.GetComponent<LayoutElement>();
+            if (layoutElement == null)
+            {
+                layoutElement = text.gameObject.AddComponent<LayoutElement>();
+            }
+            layoutElement.preferredHeight = 60;
         }
     }
 }

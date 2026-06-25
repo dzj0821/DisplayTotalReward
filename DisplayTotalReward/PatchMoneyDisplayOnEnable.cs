@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Duckov.Economy;
 using Duckov.UI;
 using HarmonyLib;
@@ -72,8 +71,12 @@ namespace DisplayTotalReward
         {
             Unregister(__instance);
 
-            var text = (TextMeshProUGUI) typeof(MoneyDisplay).GetField("text", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
-            var totalRewardTextTransform = text.transform.parent.Find("TotalRewardText");
+            var moneyTransform = __instance.transform.Find("Money");
+            if (moneyTransform == null)
+            {
+                return;
+            }
+            var totalRewardTextTransform = moneyTransform.parent.Find("TotalRewardText");
             if (totalRewardTextTransform == null)
             {
                 return;
@@ -84,7 +87,7 @@ namespace DisplayTotalReward
             {
                 return;
             }
-            var totalRewardText = totalRewardTextTransform.GetComponent<TextMeshProUGUI>();
+            var totalRewardText = totalRewardTextTransform.GetComponentInChildren<TextMeshProUGUI>();
             if (ModBehaviour.CurrentSceneName == "Base")
             {
                 // 在基地不动态刷新
